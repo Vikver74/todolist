@@ -1,17 +1,47 @@
 version: "3.9"
 
 services:
-  todolist_pg:
-    image: postgres
+  front:
+    image: sermalenk/skypro-front:lesson-34
+    depends_on:
+      api:
+        condition: service_started
     ports:
-      - "5432:5432"
+      - 80:80
+
+  api:
+    build:
+      context: .
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env
+    depends_on:
+      todolist_db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+
+  migrations:
+    build:
+      context: .
+    env_file:
+      - ./.env
+    depends_on:
+      todolist_db:
+        condition: service_healthy
+    command: python manage.py migrate
+
+  todolist_db:
+    image: postgres
     environment:
-      HOST: localhost
-      PORT: 5432
       POSTGRES_USER: todolist
       POSTGRES_PASSWORD: todolist
       POSTGRES_DB: todolist
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      timeout: 5s
+      interval: 5s
+      retries: 5
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
-
-

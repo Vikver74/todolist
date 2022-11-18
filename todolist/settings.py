@@ -90,6 +90,18 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'DB_ENGINE': 'django.db.backends.postgresql',
+#         'DB_HOST': 'todolist_db',
+#         'DB_PORT': 5432,
+#         'DB_USER': 'todolist',
+#         'DB_PASSWORD': 'todolist',
+#         'DB_NAME': 'todolist'
+#     }
+# }
+
+
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
