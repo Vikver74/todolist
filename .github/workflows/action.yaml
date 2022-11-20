@@ -34,7 +34,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          source: "deploy/docker-compose.yaml,tests/deploy/.env"
+          source: "deploy/docker-compose.yaml,deploy/.env"
           target: "todolist_ci"
           strip_components: 1
 
