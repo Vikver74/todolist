@@ -42,12 +42,16 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'social_django',
+    'corsheaders',
     'core'
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -90,16 +94,12 @@ DATABASES = {
     }
 }
 
-# DATABASES = {
-#     'default': {
-#         'DB_ENGINE': 'django.db.backends.postgresql',
-#         'DB_HOST': 'todolist_db',
-#         'DB_PORT': 5432,
-#         'DB_USER': 'todolist',
-#         'DB_PASSWORD': 'todolist',
-#         'DB_NAME': 'todolist'
-#     }
-# }
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
+}
 
 
 # Password validation
@@ -119,6 +119,11 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.vk.VKOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 
 # Internationalization
@@ -141,5 +146,14 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'core.User'
+SESSION_COOKIE_SECURE = True
+
+SOCIAL_AUTH_VK_OAUTH2_KEY = '51489759'
+SOCIAL_AUTH_VK_OAUTH2_SECRET = '3lvvhlxhLjzsiwG38yae'
+SOCIAL_AUTH_VK_OAUTH2_SCOPE = ['email']
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = '/logged-in/'
+SOCIAL_AUTH_LOGIN_ERROR_URL = '/login-error/'
