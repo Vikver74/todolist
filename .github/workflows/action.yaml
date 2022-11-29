@@ -35,6 +35,7 @@ jobs:
           cat .env-ci | envsubst > deploy/.env
       - name: copy files to server
         uses: appleboy/scp-action@master
+        overwrite: true
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
@@ -51,3 +52,4 @@ jobs:
           script: |
             cd todolist_ci
             echo ${{ secrets.PASSWORD }} | sudo -S docker-compose up -d
+
