@@ -4,6 +4,7 @@ WORKDIR /code
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY core core
+COPY goals goals
 COPY todolist todolist
 COPY manage.py .
 COPY README.md .
