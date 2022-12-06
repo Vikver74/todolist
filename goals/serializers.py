@@ -13,6 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
 class GoalCategoryCreateSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
+
     class Meta:
         model = GoalCategory
         read_only = ('id', 'created', 'updated', 'user')
@@ -21,9 +22,11 @@ class GoalCategoryCreateSerializer(serializers.ModelSerializer):
 
 class GoalCategorySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    board = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = GoalCategory
+        read_only = ('id', 'created', 'updated', 'user')
         fields = '__all__'
 
 
@@ -51,6 +54,12 @@ class GoalSerializer(serializers.ModelSerializer):
         model = Goal
         fields = '__all__'
 
+    def validate_category(self, value):
+        if value.user != self.context.get('request').user:
+            raise serializers.ValidationError('not owner of category')
+
+        return value
+
 
 class GoalCommentCreateSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -67,5 +76,5 @@ class GoalCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoalComment
-        read_only = ('id', 'created', 'updated')
+        read_only = ('id', 'created', 'updated', 'user')
         fields = '__all__'

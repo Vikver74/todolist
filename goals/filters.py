@@ -1,7 +1,7 @@
 import django_filters
 from django.db import models
 
-from goals.models import Goal
+from goals.models import Goal, GoalComment
 
 
 class GoalFilter(django_filters.rest_framework.FilterSet):
@@ -14,6 +14,13 @@ class GoalFilter(django_filters.rest_framework.FilterSet):
         filter_overrides = {
             models.DateTimeField: {"filter_class": django_filters.IsoDateTimeFilter},
         }
+
+
+class GoalCommentFilter(django_filters.rest_framework.FilterSet):
+    class Meta:
+        model = GoalComment
+        fields = {'goal': ['exact', 'in']}
+
 
 
 # class GoalFilter(django_filters.rest_framework.FilterSet):
