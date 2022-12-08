@@ -5,6 +5,7 @@ from goals.models import GoalCategory, Goal, GoalComment
 
 
 class UserSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = User
         fields = ['id', 'username', 'first_name', 'last_name', 'email']
@@ -12,7 +13,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class GoalCategoryCreateSerializer(serializers.ModelSerializer):
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
 
     class Meta:
         model = GoalCategory
@@ -22,7 +22,7 @@ class GoalCategoryCreateSerializer(serializers.ModelSerializer):
 
 class GoalCategorySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
-    board = serializers.IntegerField(read_only=True, default=0)
+    # board = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = GoalCategory
