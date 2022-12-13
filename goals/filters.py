@@ -1,7 +1,7 @@
 import django_filters
 from django.db import models
 
-from goals.models import Goal, GoalComment
+from goals.models import Goal, GoalComment, GoalCategory
 
 
 class GoalFilter(django_filters.rest_framework.FilterSet):
@@ -20,3 +20,9 @@ class GoalCommentFilter(django_filters.rest_framework.FilterSet):
     class Meta:
         model = GoalComment
         fields = {'goal': ['exact', 'in']}
+
+
+class GoalCategoryFilter(django_filters.rest_framework.FilterSet):
+    class Meta:
+        model = GoalCategory
+        fields = {'board': ['exact', 'in']}

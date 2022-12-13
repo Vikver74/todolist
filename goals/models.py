@@ -1,20 +1,44 @@
 from django.db import models
 
 
-class GoalCategory(models.Model):
+class DatesModelMixin(models.Model):
+    class Meta:
+        abstract = True
 
+    created = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
+    updated = models.DateTimeField(auto_now=True, verbose_name='Дата последнего изменения')
+
+
+class Board(DatesModelMixin):
+    class Meta:
+        verbose_name = 'Доска'
+        verbose_name_plural = 'Доски'
+
+    title = models.CharField(verbose_name='Название', max_length=255)
+    is_deleted = models.BooleanField(verbose_name='Удалена', default=False)
+
+
+class GoalCategory(DatesModelMixin):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
     user = models.ForeignKey('core.User', verbose_name='Автор', on_delete=models.PROTECT)
+    board = models.ForeignKey(
+        Board, verbose_name='Доска', on_delete=models.PROTECT, related_name='categories'
+    )
     title = models.CharField(max_length=255, verbose_name='Название')
-    created = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
-    updated = models.DateTimeField(auto_now=True, verbose_name='Дата последнего изменения')
     is_deleted = models.BooleanField(verbose_name='Удалена', default=False)
 
+    # def delete(self, using=None, keep_parents=False):
+    #     self.is_deleted = True
+    #     self.save()
 
-class Goal(models.Model):
+
+class Goal(DatesModelMixin):
+    class Meta:
+        verbose_name = 'Цель'
+        verbose_name_plural = 'Цель'
 
     class Status(models.IntegerChoices):
         to_do = 1, "К выполнению"
@@ -28,23 +52,24 @@ class Goal(models.Model):
         high = 3, "Высокий"
         critical = 4, "Критический"
 
-    class Meta:
-        verbose_name = 'Цель'
-        verbose_name_plural = 'Цель'
-
     title = models.CharField(max_length=255, verbose_name='Заголовок')
     description = models.TextField(verbose_name='Описание')
-    created = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
-    updated = models.DateTimeField(auto_now=True, verbose_name='Изменено')
     due_date = models.DateField(verbose_name='Дата исполнения')
     user = models.ForeignKey('core.User', verbose_name='Пользователь', on_delete=models.PROTECT)
-    category = models.ForeignKey('goals.GoalCategory', related_name='goals', verbose_name='Категория', on_delete=models.CASCADE)
-    priority = models.PositiveSmallIntegerField(choices=Priority.choices, default=Priority.low, verbose_name='Приоритет')
+    category = models.ForeignKey(
+        'goals.GoalCategory', related_name='goals', verbose_name='Категория', on_delete=models.CASCADE
+    )
+    priority = models.PositiveSmallIntegerField(
+        choices=Priority.choices, default=Priority.low, verbose_name='Приоритет'
+    )
     status = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.to_do, verbose_name='Статус')
 
+    # def delete(self, using=None, keep_parents=False):
+    #     self.status = Goal.Status.archived
+    #     self.save()
 
-class GoalComment(models.Model):
 
+class GoalComment(DatesModelMixin):
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
@@ -53,5 +78,21 @@ class GoalComment(models.Model):
     goal = models.ForeignKey('goals.Goal', on_delete=models.PROTECT)
     user = models.ForeignKey('core.User', verbose_name='Пользователь',
                              on_delete=models.PROTECT)
-    created = models.DateTimeField(auto_now_add=True, verbose_name='Создано')
-    updated = models.DateTimeField(auto_now=True, verbose_name='Изменено')
+
+
+class BoardParticipant(DatesModelMixin):
+    class Meta:
+        unique_together = ('board', 'user')
+        verbose_name = 'Участник'
+        verbose_name_plural = 'Участники'
+
+    class Role(models.IntegerChoices):
+        owner = 1, 'Владелец'
+        writer = 2, 'Редактор'
+        reader = 3, 'Читатель'
+
+    board = models.ForeignKey(Board, verbose_name='Доска', on_delete=models.PROTECT, related_name='participants')
+    user = models.ForeignKey(
+        'core.User', verbose_name='Пользователь', on_delete=models.PROTECT, related_name='participants'
+    )
+    role = models.PositiveSmallIntegerField(verbose_name='Роль', choices=Role.choices, default=Role.owner)
