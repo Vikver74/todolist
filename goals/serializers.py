@@ -57,10 +57,12 @@ class GoalCreateSerializer(serializers.ModelSerializer):
     def validate_category(self, value):
         if value.is_deleted:
             raise serializers.ValidationError('not allowed in deleted category')
-        if value.user != self.context.get('request').user:
-            raise serializers.ValidationError('not owner of category')
-
-        return value
+        if BoardParticipant.objects.filter(
+                user=self.context.get('request').user,
+                board=value.board,
+                role__in=[BoardParticipant.Role.owner, BoardParticipant.Role.writer]).exists():
+            return value
+        raise serializers.ValidationError('not owner or writer of boarder')
 
 
 class GoalSerializer(serializers.ModelSerializer):
@@ -70,11 +72,12 @@ class GoalSerializer(serializers.ModelSerializer):
         model = Goal
         fields = '__all__'
 
-    def validate_category(self, value):
-        if value.user != self.context.get('request').user:
-            raise serializers.ValidationError('not owner of category')
-
-        return value
+    def update(self, instance, validated_data):
+        if Board.objects.filter(categories__exact=instance.category,
+                                participants__user=instance.user,
+                                participants__role__in=[BoardParticipant.Role.owner, BoardParticipant.Role.writer]).exists():
+            return super().update(instance, validated_data)
+        raise serializers.ValidationError('not owner or writer of board')
 
 
 class GoalCommentCreateSerializer(serializers.ModelSerializer):

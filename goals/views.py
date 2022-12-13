@@ -78,7 +78,6 @@ class GoalListAPIView(generics.ListAPIView):
     model = Goal
     serializer_class = GoalSerializer
     permission_classes = [permissions.IsAuthenticated]
-    # pagination_class = pagination.LimitOffsetPagination
 
     search_fields = ['title']
     ordering_fields = ['priority', 'due_date']
@@ -92,7 +91,10 @@ class GoalListAPIView(generics.ListAPIView):
     filterset_class = GoalFilter
 
     def get_queryset(self):
-        return Goal.objects.filter(user=self.request.user).exclude(status=Goal.Status.archived)
+        # return Goal.objects.filter(user=self.request.user).exclude(status=Goal.Status.archived)
+
+        boards = Board.objects.filter(participants__user=self.request.user)
+        return Goal.objects.filter(category__in=GoalCategory.objects.filter(board__in=boards))
 
 
 class GoalDetailUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
@@ -101,13 +103,20 @@ class GoalDetailUpdateDeleteAPIView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Goal.objects.filter(user=self.request.user)
+        # boards = Board.objects.filter(participants__user=self.request.user,
+        #                               participants__role__in=[BoardParticipant.Role.owner, BoardParticipant.Role.writer])
+        boards = Board.objects.filter(participants__user=self.request.user)
+        return Goal.objects.filter(category__in=GoalCategory.objects.filter(board__in=boards))
 
     def perform_destroy(self, instance):
-        instance.status = Goal.Status.archived
-        instance.save()
-        return instance
+        boards = Board.objects.filter(participants__user=self.request.user,
+                                      participants__role__in=[BoardParticipant.Role.owner, BoardParticipant.Role.writer])
+        if Goal.objects.filter(category__in=GoalCategory.objects.filter(board__in=boards)):
+            instance.status = Goal.Status.archived
+            instance.save()
+            return instance
 
+        raise ValidationError('not owner or writer of board')
 
 class GoalCommentCreateAPIView(generics.CreateAPIView):
     model = GoalComment
