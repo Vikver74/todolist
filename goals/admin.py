@@ -4,7 +4,7 @@ from goals.models import GoalCategory, GoalComment, Goal
 
 
 class GoalCategoryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'created', 'updated', )
+    list_display = ('title', 'user', 'created', 'updated', 'board')
     search_fields = ('title', 'user')
 
 
