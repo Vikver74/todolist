@@ -91,13 +91,6 @@ class GoalCommentPermission(permissions.BasePermission):
                 board=obj.goal.category.board
             ).exists()
 
-        # if request.method == 'POST':
-        #     return BoardParticipant.objects.filter(
-        #         user=request.user,
-        #         board=obj.goal.category.board,
-        #         role__in=[BoardParticipant.Role.owner, BoardParticipant.Role.writer]
-        #     ).exists()
-
         if request.method in ['PUT', 'PATCH', 'DELETE']:
             return (obj.user == request.user and BoardParticipant.objects.filter(
                             user=request.user,
