@@ -31,8 +31,7 @@ services:
     command: python manage.py migrate
 
   bot:
-    build:
-      context: .
+    image: vikver74/todolist:$GITHUB_REF_NAME-$GITHUB_RUN_ID
     env_file:
       - ./.env
     depends_on:
