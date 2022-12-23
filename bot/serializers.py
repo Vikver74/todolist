@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from bot.models import TgUser
 from bot.tg.client import TgClient
-from core.models import User
+from todolist.settings import TELEGRAM_BOT_TOKEN
 
 
 class BotVerifyCodeUpdateView(serializers.ModelSerializer):
@@ -17,6 +17,6 @@ class BotVerifyCodeUpdateView(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.user = self.context['request'].user
         instance.save()
-        TgClient(token='5973175163:AAHQh3Vfv7h2cMKFosg-GM8iRf3bEdeC050').send_message(chat_id=instance.tg_chat_id,
+        TgClient(token=TELEGRAM_BOT_TOKEN).send_message(chat_id=instance.tg_chat_id,
                                text='Верификация прошла успешно')
         return instance

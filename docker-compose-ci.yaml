@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   front:
-    image: sermalenk/skypro-front:lesson-37
+    image: sermalenk/skypro-front:lesson-38
     depends_on:
       api:
         condition: service_started
@@ -29,6 +29,18 @@ services:
       todolist_db:
         condition: service_healthy
     command: python manage.py migrate
+
+  bot:
+    build:
+      context: .
+    env_file:
+      - ./.env
+    depends_on:
+      todolist_db:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    command: python manage.py runbot
 
   todolist_db:
     image: postgres
