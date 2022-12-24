@@ -23,7 +23,7 @@ class Command(BaseCommand):
             response: GetUpdatesResponse = tg_client.get_updates(offset=self.offset)
             for item in response.result:
                 self.offset = item.update_id + 1
-                if not hasattr(item, 'message'):
+                if not item.message:
                     continue
                 # state A пользователя нет в базе данных
                 tg_user: TgUser = self.get_tg_user(item.message)
@@ -121,7 +121,7 @@ class Command(BaseCommand):
             response: GetUpdatesResponse = tg_client.get_updates(offset=self.offset)
             for item in response.result:
                 self.offset = item.update_id + 1
-                if not hasattr(item, 'message'):
+                if not item.message:
                     continue
 
                 if item.message.text.strip().lower() == '/cancel':
@@ -142,7 +142,7 @@ class Command(BaseCommand):
             response: GetUpdatesResponse = tg_client.get_updates(offset=self.offset)
             for item in response.result:
                 self.offset = item.update_id + 1
-                if not hasattr(item, 'message'):
+                if not item.message:
                     continue
 
                 if item.message.text.strip().lower() == '/cancel':
