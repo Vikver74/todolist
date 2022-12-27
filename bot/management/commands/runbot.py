@@ -55,7 +55,6 @@ class Command(BaseCommand):
                         chat_id=item.message.chat.id,
                         text='Неизвестная команда\n\nДоступны команды:\n'
                              ' /goals - просмотреть цели\n/create - создать цель')
-                    continue
 
     def get_tg_user(self, message: Message):
         try:
@@ -93,12 +92,12 @@ class Command(BaseCommand):
         goals: Optional[List[Goal]] = Goal.objects.filter(
             category__board__participants__user__id=tg_user.user_id).exclude(status=Goal.Status.archived)
         if goals:
-            goals_str: str = f'Ваши цели:'
+            goals_str: str = 'Ваши цели:'
             for goal in goals:
                 goals_str += f'\n\n{goal.title}\nприоритет: ' \
                              f'{goal.Priority.choices[goal.priority-1][1]}\nсрок: {goal.due_date}'
         else:
-            goals_str: str = f'У Вас нет целей'
+            goals_str: str = 'У Вас нет целей'
 
         tg_client.send_message(chat_id=message.chat.id, text=goals_str)
 
