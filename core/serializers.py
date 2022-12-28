@@ -1,11 +1,10 @@
 from django.contrib.auth import get_user_model, authenticate
-from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 
-# from core.models import User
 User = get_user_model()
 
 

@@ -3,7 +3,7 @@ from django.db import transaction
 from rest_framework import generics, permissions, filters
 
 from goals.filters import GoalFilter, GoalCommentFilter, GoalCategoryFilter
-from goals.models import GoalCategory, Goal, GoalComment, Board, BoardParticipant
+from goals.models import GoalCategory, Goal, GoalComment, Board
 from goals.permissions import GoalPermission, GoalCategoryPermission, GoalCommentPermission, BoardPermissions
 from goals.serializers import GoalCategoryCreateSerializer, GoalCategorySerializer, GoalCreateSerializer, \
     GoalSerializer, GoalCommentCreateSerializer, GoalCommentSerializer, BoardCreateSerializer, BoardListSerializer, \

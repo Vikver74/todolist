@@ -63,9 +63,23 @@ def test_comment_delete(auth_client, goal_comment, board_participant):
 
 @pytest.mark.django_db
 def test_comment_list(auth_client, goal_comment_list, board_participant):
-    url = reverse('goal_comment_list')
-    response = auth_client.get(url)
+    url = reverse('goal_comment_list') + '?ordering=created'
     expected_response = GoalCommentSerializer(goal_comment_list, many=True).data
+    response = auth_client.get(path=url)
+    response_data = response.json()
+    assert response.status_code == status.HTTP_200_OK
+    assert response_data == expected_response
+
+
+@pytest.mark.django_db
+def test_comment_list_limit(auth_client, goal_comment_list, board_participant):
+    url = reverse('goal_comment_list') + '?ordering=created&limit=10'
+    expected_response = GoalCommentSerializer(goal_comment_list, many=True).data
+    response = auth_client.get(path=url)
+    response_data = response.json()
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == expected_response
+    assert response_data['count'] == 10
+    assert response_data['next'] is None
+    assert response_data['previous'] is None
+    assert response_data['results'] == expected_response

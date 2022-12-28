@@ -18,5 +18,5 @@ class BotVerifyCodeUpdateView(serializers.ModelSerializer):
         instance.user = self.context['request'].user
         instance.save()
         TgClient(token=TELEGRAM_BOT_TOKEN).send_message(chat_id=instance.tg_chat_id,
-                               text='Верификация прошла успешно')
+                                                        text='Верификация прошла успешно')
         return instance

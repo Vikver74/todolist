@@ -2,7 +2,6 @@ import datetime
 from django.contrib.auth import get_user_model
 import factory
 
-# from tests.fixtures import test_user
 
 USER_MODEL = get_user_model()
 

@@ -1,18 +1,10 @@
 import pytest
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
-from tests.factories import BoardFactory, GoalCategoryFactory, GoalFactory, GoalCommentFactory, BoardParticipantFactory, \
-    UserFactory
+from tests.factories import BoardFactory, GoalCategoryFactory, GoalFactory, GoalCommentFactory, BoardParticipantFactory
 
 
 USER_MODEL = get_user_model()
-
-
-# @pytest.fixture
-# def auth_client(user):
-#     client = APIClient()
-#     client.force_authenticate(user)
-#     return client
 
 
 @pytest.fixture
@@ -35,6 +27,11 @@ def auth_client(test_user):
 @pytest.fixture
 def board():
     return BoardFactory.create()
+
+
+@pytest.fixture
+def board_list():
+    return BoardFactory.create_batch(size=10)
 
 
 @pytest.fixture
@@ -69,4 +66,4 @@ def goal_comment(test_user, goal):
 
 @pytest.fixture
 def goal_comment_list(test_user, goal):
-    return GoalCommentFactory.create_batch(size=1, user=test_user, goal=goal)
+    return GoalCommentFactory.create_batch(size=10, user=test_user, goal=goal)

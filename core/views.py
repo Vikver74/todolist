@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
@@ -14,7 +14,6 @@ class UserCreateAPIView(generics.CreateAPIView):
     queryset = User.objects.all()
 
 
-# @method_decorator(csrf_exempt, name='dispatch')
 class UserLoginView(generics.GenericAPIView):
     serializer_class = UserLoginSerializer
     queryset = User.objects.all()
