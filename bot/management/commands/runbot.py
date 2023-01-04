@@ -15,14 +15,18 @@ from todolist.settings import TELEGRAM_BOT_TOKEN
 class Command(BaseCommand):
     help: str = 'Command to start TodolistBot'
 
-    def __init__(self, *args, **kwargs):
-        self.offset: int = 0
-        self.tg_client = TgClient(token=TELEGRAM_BOT_TOKEN)
-        super().__init__(*args, **kwargs)
+    # def __init__(self, *args, **kwargs):
+    #     self.offset: int = 0
+    #     self.tg_client = TgClient(token=TELEGRAM_BOT_TOKEN)
+    #     super().__init__(*args, **kwargs)
+
+    offset: int = 0
+
 
     def handle(self, *args, **options):
+        tg_client = TgClient(token=TELEGRAM_BOT_TOKEN)
         while True:
-            response: GetUpdatesResponse = self.tg_client.get_updates(offset=self.offset)
+            response: GetUpdatesResponse = tg_client.get_updates(offset=self.offset)
             for item in response.result:
                 self.offset = item.update_id + 1
                 if not item.message:
@@ -31,29 +35,29 @@ class Command(BaseCommand):
                 tg_user: TgUser = self.get_tg_user(item.message)
                 if not tg_user:
                     verification_code: str = self.generate_verification_code()
-                    self.create_tg_user(item.message, self.tg_client, verification_code)
+                    self.create_tg_user(item.message, tg_client, verification_code)
                     continue
 
                 # state B пользователь есть в базе, но не подтвержден
                 if tg_user.user_id is None:
                     verification_code: str = self.generate_verification_code()
-                    self.update_tg_user_verification_code(item.message, self.tg_client, verification_code)
+                    self.update_tg_user_verification_code(item.message, tg_client, verification_code)
                     continue
 
                 # state C пользователь есть в базе и подтвержден
                 if item.message.text.strip().lower() == '/goals':
-                    self.get_goals(item.message, tg_user, self.tg_client)
+                    self.get_goals(item.message, tg_user, tg_client)
                 elif item.message.text.strip().lower() == '/create':  # state Create 1
-                    goal_categories: list = self.get_goal_categories(item.message, tg_user, self.tg_client)
-                    goal_category = self.choose_goal_category(self.tg_client, goal_categories)
+                    goal_categories: list = self.get_goal_categories(item.message, tg_user, tg_client)
+                    goal_category = self.choose_goal_category(tg_client, goal_categories)
                     if goal_category:
-                        self.tg_client.send_message(
+                        tg_client.send_message(
                             chat_id=item.message.chat.id,
                             text=f'Вы выбрали категорию:  {goal_category.title}\n Введите название цели\n'
                                  f'(Чтобы прервать операцию, введите команду /cancel)')
-                        self.create_goal(self.tg_client, tg_user, goal_category)
+                        self.create_goal(tg_client, tg_user, goal_category)
                 else:
-                    self.tg_client.send_message(
+                    tg_client.send_message(
                         chat_id=item.message.chat.id,
                         text='Неизвестная команда\n\nДоступны команды:\n'
                              ' /goals - просмотреть цели\n/create - создать цель')
