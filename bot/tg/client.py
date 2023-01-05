@@ -10,7 +10,7 @@ class TgClient:
     def get_url(self, method: str):
         return f'https://api.telegram.org/bot{self.token}/{method}'
 
-    def get_updates(self, offset: int = 0, timeout: int = 60) -> GetUpdatesResponse:
+    def get_updates(self, offset: int = 0, timeout: int = 120) -> GetUpdatesResponse:
         url = self.get_url('getUpdates')
         response = requests.get(url=url, params={'offset': offset, 'timeout': timeout})
         return GET_UPDATES_RESPONSE_SCHEMA.load(response.json())
