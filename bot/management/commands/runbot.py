@@ -15,18 +15,14 @@ from todolist.settings import TELEGRAM_BOT_TOKEN
 class Command(BaseCommand):
     help: str = 'Command to start TodolistBot'
 
-    # def __init__(self, *args, **kwargs):
-    #     self.offset: int = 0
-    #     self.tg_client = TgClient(token=TELEGRAM_BOT_TOKEN)
-    #     super().__init__(*args, **kwargs)
-
-    offset: int = 0
-
+    def __init__(self, *args, **kwargs):
+        self.offset: int = 0
+        self.tg_client = TgClient(token=TELEGRAM_BOT_TOKEN)
+        super().__init__(*args, **kwargs)
 
     def handle(self, *args, **options):
-        tg_client = TgClient(token=TELEGRAM_BOT_TOKEN)
         while True:
-            response: GetUpdatesResponse = tg_client.get_updates(offset=self.offset)
+            response: GetUpdatesResponse = self.tg_client.get_updates(offset=self.offset)
             for item in response.result:
                 self.offset = item.update_id + 1
                 if not item.message:
@@ -35,29 +31,29 @@ class Command(BaseCommand):
                 tg_user: TgUser = self.get_tg_user(item.message)
                 if not tg_user:
                     verification_code: str = self.generate_verification_code()
-                    self.create_tg_user(item.message, tg_client, verification_code)
+                    self.create_tg_user(item.message, verification_code)
                     continue
 
                 # state B пользователь есть в базе, но не подтвержден
                 if tg_user.user_id is None:
                     verification_code: str = self.generate_verification_code()
-                    self.update_tg_user_verification_code(item.message, tg_client, verification_code)
+                    self.update_tg_user_verification_code(item.message, verification_code)
                     continue
 
                 # state C пользователь есть в базе и подтвержден
                 if item.message.text.strip().lower() == '/goals':
-                    self.get_goals(item.message, tg_user, tg_client)
+                    self.get_goals(item.message, tg_user)
                 elif item.message.text.strip().lower() == '/create':  # state Create 1
-                    goal_categories: list = self.get_goal_categories(item.message, tg_user, tg_client)
-                    goal_category = self.choose_goal_category(tg_client, goal_categories)
+                    goal_categories: list = self.get_goal_categories(item.message, tg_user)
+                    goal_category = self.choose_goal_category(goal_categories)
                     if goal_category:
-                        tg_client.send_message(
+                        self.tg_client.send_message(
                             chat_id=item.message.chat.id,
                             text=f'Вы выбрали категорию:  {goal_category.title}\n Введите название цели\n'
                                  f'(Чтобы прервать операцию, введите команду /cancel)')
-                        self.create_goal(tg_client, tg_user, goal_category)
+                        self.create_goal(tg_user, goal_category)
                 else:
-                    tg_client.send_message(
+                    self.tg_client.send_message(
                         chat_id=item.message.chat.id,
                         text='Неизвестная команда\n\nДоступны команды:\n'
                              ' /goals - просмотреть цели\n/create - создать цель')
@@ -82,11 +78,10 @@ class Command(BaseCommand):
         """
         return get_random_string(length=32)
 
-    def create_tg_user(self, message: Message, tg_client: TgClient, verification_code: str) -> None:
+    def create_tg_user(self, message: Message, verification_code: str) -> None:
         """
         Создать пользователя Telegram в приложении
         :param message:  сообщение, полученное от Telegram бота (метод getUpdates)
-        :param tg_client: экземпляр класса взаимодействия с Telegram Bot API
         :param verification_code: код верификации пользователя Telegram
         :return: None
         """
@@ -96,16 +91,15 @@ class Command(BaseCommand):
             tg_username=message.msg_from.username,
             verification_code=verification_code
         )
-        tg_client.send_message(chat_id=message.chat.id,
+        self.tg_client.send_message(chat_id=message.chat.id,
                                text=f'Привет, {message.msg_from.first_name}!\n'
                                     f'[verification_code]: {verification_code}')
 
-    def update_tg_user_verification_code(self, message, tg_client, verification_code) -> None:
+    def update_tg_user_verification_code(self, message, verification_code) -> None:
         """
         Сохраняем код верификации верификации пользователя Telegram в соответствующем экземпляре модели TgUser,
         тем самым связывая пользователя приложения с пользователем Telegram
         :param message: сообщение, полученное от Telegram бота (метод getUpdates)
-        :param tg_client: экземпляр класса взаимодействия с Telegram Bot API
         :param verification_code: код верификации пользователя Telegram
         :return: None
         """
@@ -114,16 +108,15 @@ class Command(BaseCommand):
             tg_user.objects.update(
                 verification_code=verification_code
             )
-            tg_client.send_message(chat_id=message.chat.id,
+            self.tg_client.send_message(chat_id=message.chat.id,
                                    text=f'Привет, {message.msg_from.first_name}!\n'
                                         f'[Verification_code]: {verification_code}')
 
-    def get_goals(self, message: Message, tg_user: TgUser, tg_client: TgClient) -> None:
+    def get_goals(self, message: Message, tg_user: TgUser) -> None:
         """
         Получить все цели текущего пользователя
         :param message: сообщение, полученное от Telegram бота (метод getUpdates)
         :param tg_user: экземпляр класса TgUser, соответсвующий текущему пользователю
-        :param tg_client: экземпляр класса взаимодействия с Telegram Bot API
         :return: None
         """
         goals: Optional[List[Goal]] = Goal.objects.filter(
@@ -136,15 +129,13 @@ class Command(BaseCommand):
         else:
             goals_str: str = 'У Вас нет целей'
 
-        tg_client.send_message(chat_id=message.chat.id, text=goals_str)
+        self.tg_client.send_message(chat_id=message.chat.id, text=goals_str)
 
-    def get_goal_categories(self, message: Message, tg_user: TgUser, tg_client: TgClient
-                            ) -> Optional[List[GoalCategory]]:
+    def get_goal_categories(self, message: Message, tg_user: TgUser) -> Optional[List[GoalCategory]]:
         """
         Получить список категорий целей текущего пользователя
         :param message: сообщение, полученное от Telegram бота (метод getUpdates)
         :param tg_user: экземпляр класса TgUser, соответсвующий текущему пользователю
-        :param tg_client: экземпляр класса взаимодействия с Telegram Bot API
         :return: если есть - список категорий (класс GoalCategory),  если нет - пустой список
         """
         goal_categories: Optional[List[GoalCategory]] = GoalCategory.objects.filter(
@@ -156,26 +147,25 @@ class Command(BaseCommand):
                                        f'' + '\n'.join(list_goal_categories)
         else:
             goal_categories_str: str = f'У Вас нет ни одной категории'
-        tg_client.send_message(chat_id=message.chat.id, text=goal_categories_str)
+        self.tg_client.send_message(chat_id=message.chat.id, text=goal_categories_str)
 
         return goal_categories
 
-    def choose_goal_category(self, tg_client: TgClient, goal_categories: List[GoalCategory]) -> Optional[GoalCategory]:
+    def choose_goal_category(self, goal_categories: List[GoalCategory]) -> Optional[GoalCategory]:
         """
         Выбрать категорию для создания цели
-        :param tg_client: экземпляр класса взаимодействия с Telegram Bot API
         :param goal_categories: список категорий текущего пользователя
         :return: если введена корректная категория - категория, если введена команда /cancel - None
         """
         while True:
-            response: GetUpdatesResponse = tg_client.get_updates(offset=self.offset)
+            response: GetUpdatesResponse = self.tg_client.get_updates(offset=self.offset)
             for item in response.result:
                 self.offset = item.update_id + 1
                 if not item.message:
                     continue
 
                 if item.message.text.strip().lower() == '/cancel':
-                    tg_client.send_message(chat_id=item.message.chat.id, text='Cоздание цели прервано')
+                    self.tg_client.send_message(chat_id=item.message.chat.id, text='Cоздание цели прервано')
                     return None
 
                 elif item.message.text.strip().lower() in [goal_category.title for goal_category in goal_categories]:
@@ -183,27 +173,26 @@ class Command(BaseCommand):
                         if item.message.text.strip().lower() == goal_category.title:
                             return goal_category
                 else:
-                    tg_client.send_message(
+                    self.tg_client.send_message(
                         chat_id=item.message.chat.id,
                         text='Такой категории нет, повторите ввод\n (Чтобы прервать операцию, введите команду /cancel)')
 
-    def create_goal(self, tg_client: TgClient, tg_user: TgUser, goal_category: GoalCategory) -> None:
+    def create_goal(self, tg_user: TgUser, goal_category: GoalCategory) -> None:
         """
         Создать цель
-        :param tg_client: экземпляр класса взаимодействия с Telegram Bot API
         :param tg_user: экземпляр класса TgUser, соответсвующий текущему пользователю
         :param goal_category: список категорий текущего пользователя
         :return: None
         """
         while True:
-            response: GetUpdatesResponse = tg_client.get_updates(offset=self.offset)
+            response: GetUpdatesResponse = self.tg_client.get_updates(offset=self.offset)
             for item in response.result:
                 self.offset = item.update_id + 1
                 if not item.message:
                     continue
 
                 if item.message.text.strip().lower() == '/cancel':
-                    tg_client.send_message(chat_id=item.message.chat.id, text='Cоздание цели прервано')
+                    self.tg_client.send_message(chat_id=item.message.chat.id, text='Cоздание цели прервано')
                     return
                 else:
                     due_date = datetime.date.today() + datetime.timedelta(days=14)
@@ -214,6 +203,6 @@ class Command(BaseCommand):
                         description='Цель создана в Telegram',
                         due_date=due_date.strftime('%Y-%m-%d')
                     )
-                    tg_client.send_message(
+                    self.tg_client.send_message(
                         chat_id=item.message.chat.id, text=f'Цель [{goal.title}] успешно создана')
                     return
