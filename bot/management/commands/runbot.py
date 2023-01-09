@@ -41,9 +41,9 @@ class Command(BaseCommand):
                     continue
 
                 # state C пользователь есть в базе и подтвержден
-                if item.message.text.strip().lower() == '/goals':
+                if item.message.text == '/goals':
                     self.get_goals(item.message, tg_user)
-                elif item.message.text.strip().lower() == '/create':  # state Create 1
+                elif item.message.text == '/create':  # state Create 1
                     goal_categories: list = self.get_goal_categories(item.message, tg_user)
                     goal_category = self.choose_goal_category(goal_categories)
                     if goal_category:
@@ -164,13 +164,13 @@ class Command(BaseCommand):
                 if not item.message:
                     continue
 
-                if item.message.text.strip().lower() == '/cancel':
+                if item.message.text == '/cancel':
                     self.tg_client.send_message(chat_id=item.message.chat.id, text='Cоздание цели прервано')
                     return None
 
-                elif item.message.text.strip().lower() in [goal_category.title for goal_category in goal_categories]:
+                elif item.message.text in [goal_category.title for goal_category in goal_categories]:
                     for goal_category in goal_categories:
-                        if item.message.text.strip().lower() == goal_category.title:
+                        if item.message.text == goal_category.title:
                             return goal_category
                 else:
                     self.tg_client.send_message(
@@ -191,7 +191,7 @@ class Command(BaseCommand):
                 if not item.message:
                     continue
 
-                if item.message.text.strip().lower() == '/cancel':
+                if item.message.text == '/cancel':
                     self.tg_client.send_message(chat_id=item.message.chat.id, text='Cоздание цели прервано')
                     return
                 else:
